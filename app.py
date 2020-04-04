@@ -5,9 +5,11 @@ from connectors.redis import Redis
 from routes.Ping import Ping
 from routes.Tasks import Tasks
 from routes.TasksList import TasksList
-from middleware.data_config import DataConfig
 
-api = falcon.API(middleware=[DataConfig()])
+from middleware.data_config import DataConfig
+from middleware.auth import Authentication
+
+api = falcon.API(middleware=[Authentication(), DataConfig()])
 api.add_route('/ping', Ping())
 api.add_route('/api/tasks', Tasks())
 api.add_route('/api/tasks/{id:int}', TasksList())

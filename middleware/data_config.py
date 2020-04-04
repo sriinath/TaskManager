@@ -12,8 +12,6 @@ class DataConfig:
     def process_request(self, req, resp):
         if req.path != '/ping':
             req.context['SPREADSHEET_ID']=spreadsheet_id
-            req.context['SHEET_ID']=sheet_id
-            req.context['SHEET_NAME']=sheet_name
             req.context['API_KEY']=api_key
             access_token=SheetsV4.get_access_token()
             if access_token is None:
