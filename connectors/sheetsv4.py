@@ -15,7 +15,7 @@ class SheetsV4:
         if access_token is not None:
             redis_cli=Redis.get_redis_client()
             if redis_cli is not None:
-                redis_cli.set('sheets_v4_access', access_token)
+                redis_cli.set('sheets_v4_access', access_token, ex=28800)
             else:
                 print('redis is not connected')
 
@@ -28,7 +28,7 @@ class SheetsV4:
                 data=json.dumps({'username': SheetsV4.__username, 'password': SheetsV4.__password})
             )
             sheets_access=sheets_access.json()
-            print(sheets_access)
+            print('Access token received from datastore endpont')
             if 'user' in sheets_access and 'access_token' in sheets_access['user']:
                 access=sheets_access['user']['access_token']
                 t=Thread(target=SheetsV4.__set_access_token, args=(access,))
