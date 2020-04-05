@@ -1,5 +1,6 @@
 import falcon
 from threading import Thread
+import os
 
 from connectors.redis import Redis
 from routes.Ping import Ping
@@ -26,5 +27,6 @@ except Exception as e:
 
 if __name__ == "__main__":
     from wsgiref import simple_server
-    httpd = simple_server.make_server('127.0.0.1', 8001, api)
+    PORT = os.environ.get('PORT', 8000)
+    httpd = simple_server.make_server('0.0.0.0', int(PORT), api)
     httpd.serve_forever()
