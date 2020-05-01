@@ -2,10 +2,26 @@ import json
 import requests
 from falcon import HTTP_201, HTTP_200
 from json.decoder import JSONDecodeError
+from time import strptime
 
 from config import SHEETS_V4
 from utils.Base import Base
 from utils.TaskManagerError import TaskManagerError
+
+def format_data(task_data, start=0, end=10, start_date=None, end_date=None):
+    result_data=list()
+    start_date=strptime(start_date, "%d/%m/%Y") if start_date else None
+    end_date=strptime(end_date, "%d/%m/%Y") if end_date else None
+    for data in task_data:
+        date=strptime(data['DATE'], "%Y-%m-%d") if 'DATE' in data else None
+        if date is not None and (
+            (not start_date and not end_date) or
+            (not start_date or (start_date and date >= start_date)) and
+            (not end_date or (end_date and date <= end_date))
+            ):
+            result_data.append(data)
+    result_data.reverse()
+    return result_data[start: end]
 
 class Tasks(Base):
     def on_post(self, req, resp):
@@ -120,21 +136,24 @@ class Tasks(Base):
             super().raise_error(desc='Something went wrong while deleting sheet')
 
     def on_get(self, req, resp):
-        limit=req.params.get('limit', 10)
-        offset=req.params.get('offset', 0)
+        req_params=req.params
+        limit=req_params.get('limit', 10)
+        offset=req_params.get('offset', 0)
+        start_date=req_params.get('start_date', None)
+        end_date=req_params.get('end_date', None)
         index=limit *  offset
         start_index=index + 1
         end_index=index = limit
         try:
             spreadsheet_id=req.context['SPREADSHEET_ID'] or ''
-            sheet_name=req.context['SHEET_NAME'] or ''
+            sheet_name='srinath karthikeyan_cDZUZSHqFzLHjpz5iInsAeCD7R02'
             api_key=req.context['API_KEY'] or ''
             access_token=req.context['ACCESS_TOKEN'] or ''
 
             get_data_path=SHEETS_V4['GET_DATA'].replace('{spreadsheet_id}', spreadsheet_id)
             endpoint=SHEETS_V4['ENDPOINT'] + get_data_path
             title_range='{}!A1:J1'.format(sheet_name)
-            data_range='{}!A{}:J{}'.format(sheet_name, start_index + 1, end_index + 1)
+            data_range='{}'.format(sheet_name)
             get_task=requests.get(
                 endpoint,
                 headers={'Authorization': api_key},
@@ -144,11 +163,18 @@ class Tasks(Base):
                     'range': json.dumps([title_range, data_range])
                 }
             )
+            formatted_output=format_data(
+                get_task.json()[1:],
+                start_date=start_date,
+                end_date=end_date,
+                start=start_index,
+                end=end_index
+            )
             if get_task.status_code == 200:
                 resp.status=HTTP_200
                 resp.body=json.dumps({
                     'status': 'Success',
-                    'data': get_task.json()
+                    'data': formatted_output
                 })
             else:
                 print('Api_key used is:', api_key)
