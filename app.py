@@ -8,8 +8,9 @@ from routes.TasksList import TasksList
 
 from middleware.data_config import DataConfig
 from middleware.auth import Authentication
+from middleware.cors import CORS
 
-api = falcon.API(middleware=[Authentication(), DataConfig()])
+api = falcon.API(middleware=[CORS(), Authentication(), DataConfig()])
 api.add_route('/ping', Ping())
 api.add_route('/api/tasks', Tasks())
 api.add_route('/api/tasks/{id:int}', TasksList())
