@@ -1,5 +1,5 @@
 falcon==2.0.0
-redis==3.4.1
+redis==4.5.3
 requests==2.23.0
 google-api-python-client==1.8.0
 uwsgi==2.0.1
